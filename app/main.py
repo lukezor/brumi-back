@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile
+from fastapi.params import File
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -87,9 +88,9 @@ def deletar_produto(produto_id: int, db: Session = Depends(get_db)):
 
 #--- ROTAS DE UPLOAD ---
 @app.post("/produtos/{produto_id}/imagens/", response_model=schemas.ProdutoRead)
-async def adicionar_imagens_produto(produto_id: int, imagens: List[UploadFile], db: Session = Depends(get_db)):
+async def adicionar_imagens_produto(produto_id: int, imagens: List[UploadFile] = File(...), db: Session = Depends(get_db)):
     return await crud.adicionar_imagens_produto(db, produto_id, imagens)
 
 @app.delete("/produtos/{produto_id}/imagens/{index}", response_model=schemas.ProdutoRead)
-async def remover_imagem_produto(produto_id: int, index: int, db: Session = Depends(get_db)):
-    return await crud.remover_imagem_produto(db, produto_id, index)
+def remover_imagem_produto(produto_id: int, index: int, db: Session = Depends(get_db)):
+    return crud.remover_imagem_produto(db, produto_id, index)
