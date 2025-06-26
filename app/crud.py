@@ -5,26 +5,6 @@ from fastapi import UploadFile, HTTPException
 import os
 from uuid import uuid4
 
-# --- UPLOAD ---
-async def salvar_imagem(imagem: UploadFile):
-    if not os.path.exists("uploads"):
-        os.makedirs("uploads")
-    if imagem.content_type not in ["image/webp", "image/png", "image/jpeg"]:
-        raise HTTPException(status_code=400, detail="Formato de imagem inválido")
-    if imagem.filename is not None:
-        nome_arquivo = f"{uuid4()}.{imagem.filename.split('.')[-1]}"
-    else:
-        nome_arquivo = f"{uuid4()}.{imagem.content_type.split('/')[-1]}"
-    caminho_arquivo = os.path.join("uploads", nome_arquivo)
-    with open(caminho_arquivo, "wb") as f:
-        content = await imagem.read()
-        f.write(content)
-    return caminho_arquivo
-
-def deletar_imagem(caminho: str):
-    if os.path.exists(caminho):
-        os.remove(caminho)
-
 # --- CATEGORIA ---
 
 def criar_categoria(db: Session, categoria: schemas.CategoriaCreate):
@@ -122,3 +102,63 @@ def deletar_produto(db: Session, produto_id: int):
     db.delete(db_produto)
     db.commit()
     return db_produto
+
+# --- UPLOAD ---
+async def salvar_imagem(imagem: UploadFile):
+    if not os.path.exists("uploads"):
+        os.makedirs("uploads")
+    if imagem.content_type not in ["image/webp", "image/png", "image/jpeg"]:
+        raise HTTPException(status_code=400, detail="Formato de imagem inválido")
+    if imagem.filename is not None:
+        nome_arquivo = f"{uuid4()}.{imagem.filename.split('.')[-1]}"
+    else:
+        nome_arquivo = f"{uuid4()}.{imagem.content_type.split('/')[-1]}"
+    caminho_arquivo = os.path.join("uploads", nome_arquivo)
+    with open(caminho_arquivo, "wb") as f:
+        content = await imagem.read()
+        f.write(content)
+    return caminho_arquivo
+
+def deletar_imagem(caminho: str):
+    if os.path.exists(caminho):
+        os.remove(caminho)
+
+async def salvar_multiplas_imagens(imagens: List[UploadFile]) -> List[str]:
+    caminhos = []
+    try:
+        for imagem in imagens:
+            caminho = await salvar_imagem(imagem)
+            caminhos.append(caminho)
+        return caminhos
+    except Exception as e:
+        for caminho in caminhos:
+            deletar_imagem(caminho)
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar imagens")
+
+async def adicionar_imagens_produto(db: Session, produto_id: int, imagens: List[UploadFile]):
+    produto = obter_produto(db, produto_id)
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    imagens_atuais = len(produto.imagens) if produto.imagens else 0
+    if imagens_atuais + len(imagens) > 5:
+        raise HTTPException(status_code=400, detail="Número máximo de imagens por produto é 5")
+    novos_caminhos = await salvar_multiplas_imagens(imagens)
+    produto.imagens = (produto.imagens or []) + novos_caminhos
+    db.commit()
+    db.refresh(produto)
+    return produto
+
+def remover_imagem_produto(db: Session, produto_id: int, index: int):
+    produto = obter_produto(db, produto_id)
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
+    if not produto.imagens or len(produto.imagens) == 0:
+        raise HTTPException(status_code=404, detail="Imagem não encontrada")
+    if index < 0 or index >= len(produto.imagens):
+        raise HTTPException(status_code=400, detail="Índice de imagem inválido")
+    caminho_imagem = produto.imagens[index]
+    deletar_imagem(caminho_imagem)
+    produto.imagens.pop(index)
+    db.commit()
+    db.refresh(produto)
+    return produto
