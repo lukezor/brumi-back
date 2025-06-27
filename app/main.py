@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import logging
-
-from app import models, schemas, crud
+from datetime import timedelta
+from app import models, schemas, crud, auth
 from app.database import engine, SessionLocal, Base
 
 # Cria as tabelas no banco, se ainda não existirem
@@ -50,6 +50,18 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         }
     )
 
+# Handler específico para erro de token de acesso obrigatório
+@app.exception_handler(403)
+async def forbidden_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=401,
+        content={
+            "error": "Token de acesso obrigatório",
+            "message": "É necessário fazer login para acessar este recurso.",
+            "status_code": 401
+        }
+    )
+
 # Dependency para pegar a sessão do banco
 def get_db():
     db = SessionLocal()
@@ -58,10 +70,27 @@ def get_db():
     finally:
         db.close()
 
+# --- ROTAS DE AUTENTICAÇÃO ---
+
+@app.post("/auth/login", response_model=schemas.Token)
+def login(login_data: schemas.LoginData):
+    user = auth.authenticate_user(login_data.username, login_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Credenciais inválidas",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=int(auth.ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token = auth.create_access_token(
+        data={"sub": user["username"]}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 # --- ROTAS DE CATEGORIAS ---
 
 @app.post("/categorias/", response_model=schemas.CategoriaRead)
-def criar_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(get_db)):
+def criar_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(get_db), current_user: dict = Depends(auth.get_current_user)):
     db_categoria = crud.criar_categoria(db, categoria)
     return db_categoria
 
@@ -79,7 +108,7 @@ def obter_categoria(categoria_id: int, db: Session = Depends(get_db)):
 # --- ROTAS DE PRODUTOS ---
 
 @app.post("/produtos/", response_model=schemas.ProdutoRead)
-def criar_produto(produto: schemas.ProdutoCreate, db: Session = Depends(get_db)):
+def criar_produto(produto: schemas.ProdutoCreate, db: Session = Depends(get_db), current_user: dict = Depends(auth.get_current_user)):
     return crud.criar_produto(db, produto)
 
 @app.get("/produtos/", response_model=List[schemas.ProdutoRead])
@@ -112,14 +141,14 @@ def obter_produto(produto_id: int, db: Session = Depends(get_db)):
     return db_produto
 
 @app.put("/produtos/{produto_id}", response_model=schemas.ProdutoRead)
-def atualizar_produto(produto_id: int, produto: schemas.ProdutoUpdate, db: Session = Depends(get_db)):
+def atualizar_produto(produto_id: int, produto: schemas.ProdutoUpdate, db: Session = Depends(get_db), current_user: dict = Depends(auth.get_current_user)):
     db_produto = crud.atualizar_produto(db, produto_id, produto)
     if not db_produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado para atualizar")
     return db_produto
 
 @app.delete("/produtos/{produto_id}", response_model=schemas.ProdutoRead)
-def deletar_produto(produto_id: int, db: Session = Depends(get_db)):
+def deletar_produto(produto_id: int, db: Session = Depends(get_db), current_user: dict = Depends(auth.get_current_user)):
     db_produto = crud.deletar_produto(db, produto_id)
     if not db_produto:
         raise HTTPException(status_code=404, detail="Produto não encontrado para deletar")
@@ -127,9 +156,9 @@ def deletar_produto(produto_id: int, db: Session = Depends(get_db)):
 
 #--- ROTAS DE UPLOAD ---
 @app.post("/produtos/{produto_id}/imagens/", response_model=schemas.ProdutoRead)
-async def adicionar_imagens_produto(produto_id: int, imagens: List[UploadFile] = File(...), db: Session = Depends(get_db)):
+async def adicionar_imagens_produto(produto_id: int, imagens: List[UploadFile] = File(...), db: Session = Depends(get_db), current_user: dict = Depends(auth.get_current_user)):
     return await crud.adicionar_imagens_produto(db, produto_id, imagens)
 
 @app.delete("/produtos/{produto_id}/imagens/{index}", response_model=schemas.ProdutoRead)
-def remover_imagem_produto(produto_id: int, index: int, db: Session = Depends(get_db)):
+def remover_imagem_produto(produto_id: int, index: int, db: Session = Depends(get_db), current_user: dict = Depends(auth.get_current_user)):
     return crud.remover_imagem_produto(db, produto_id, index)

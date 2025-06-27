@@ -13,7 +13,7 @@ class CategoriaRead(CategoriaBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # ----------- Produto -----------
@@ -40,6 +40,14 @@ class ProdutoRead(ProdutoBase):
     imagens: List[str] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
+# ----------- Autenticação ----------
 
+class LoginData(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
