@@ -32,6 +32,14 @@ def criar_produto(db: Session, produto: schemas.ProdutoCreate):
     # Associar categorias
     if produto.categorias_ids:
         categorias = db.query(models.Categoria).filter(models.Categoria.id.in_(produto.categorias_ids)).all()
+        # Verificar se todas as categorias foram encontradas
+        ids_encontrados = [cat.id for cat in categorias]
+        ids_nao_encontrados = [id for id in produto.categorias_ids if id not in ids_encontrados]
+        if ids_nao_encontrados:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Categorias não encontradas: {ids_nao_encontrados}"
+            )
         db_produto.categorias = categorias
 
     db.add(db_produto)
@@ -87,9 +95,15 @@ def atualizar_produto(db: Session, produto_id: int, produto: schemas.ProdutoUpda
 
     if produto.categorias_ids is not None:
         categorias = db.query(models.Categoria).filter(models.Categoria.id.in_(produto.categorias_ids)).all()
+        # Verificar se todas as categorias foram encontradas
+        ids_encontrados = [cat.id for cat in categorias]
+        ids_nao_encontrados = [id for id in produto.categorias_ids if id not in ids_encontrados]
+        if ids_nao_encontrados:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Categorias não encontradas: {ids_nao_encontrados}"
+            )
         db_produto.categorias = categorias
-    else:
-        db_produto.categorias = []
 
     db.commit()
     db.refresh(db_produto)
@@ -133,7 +147,7 @@ async def salvar_multiplas_imagens(imagens: List[UploadFile]) -> List[str]:
     except Exception as e:
         for caminho in caminhos:
             deletar_imagem(caminho)
-        raise HTTPException(status_code=500, detail=f"Erro ao salvar imagens")
+        raise e
 
 async def adicionar_imagens_produto(db: Session, produto_id: int, imagens: List[UploadFile]):
     produto = obter_produto(db, produto_id)
@@ -158,7 +172,9 @@ def remover_imagem_produto(db: Session, produto_id: int, index: int):
         raise HTTPException(status_code=400, detail="Índice de imagem inválido")
     caminho_imagem = produto.imagens[index]
     deletar_imagem(caminho_imagem)
-    produto.imagens.pop(index)
+    lista_atualizada = produto.imagens.copy()
+    lista_atualizada.pop(index)
+    produto.imagens = lista_atualizada
     db.commit()
     db.refresh(produto)
     return produto
