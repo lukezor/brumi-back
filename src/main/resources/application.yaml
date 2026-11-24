@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: brumi-api
+
+  # Perfil usado quando nenhum outro for informado (equivale a "ambiente de desenvolvimento").
+  profiles:
+    default: dev
+
+  jpa:
+    # "validate": o Hibernate apenas confere se as tabelas batem com as entidades.
+    # Quem cria/altera tabelas é o Flyway (migrations), nunca o Hibernate.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
