@@ -11,4 +11,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * Os tipos genericos sao <Entidade, TipoDoId>.
  */
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
+
+	/**
+	 * "Query derivada": o Spring le o NOME do metodo e gera o SQL sozinho.
+	 * existsByNome -> select count(*) > 0 from categoria where nome = ?
+	 */
+	boolean existsByNome(String nome);
 }

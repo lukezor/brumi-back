@@ -2,6 +2,7 @@ package br.com.brumi.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -27,6 +28,11 @@ public class SecurityConfig {
 			.csrf(AbstractHttpConfigurer::disable)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/ping", "/actuator/health", "/actuator/health/**").permitAll()
+				// Leitura de categorias: publica (como no sistema original).
+				.requestMatchers(HttpMethod.GET, "/api/categorias", "/api/categorias/**").permitAll()
+				// TEMPORARIO (Task 5): o POST fica aberto so para podermos testar. Na Task 7 passa a exigir
+				// o token JWT de admin. NAO publicar nesta forma.
+				.requestMatchers(HttpMethod.POST, "/api/categorias").permitAll()
 				.anyRequest().authenticated())
 			.httpBasic(Customizer.withDefaults());
 		return http.build();
