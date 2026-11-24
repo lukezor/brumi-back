@@ -47,6 +47,17 @@ brumi:
     diretorio: ${UPLOADS_DIR:uploads}
     tamanho-maximo-por-arquivo: 5MB
 
+# Documentacao interativa: http://localhost:8080/swagger-ui.html
+# Em producao costuma-se desligar (SWAGGER_ENABLED=false), para nao expor o mapa da API.
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+    tags-sorter: alpha
+    operations-sorter: method
+    persist-authorization: true   # mantem o token do "Authorize" ao recarregar a pagina (so no seu navegador)
+
 management:
   endpoints:
     web:
