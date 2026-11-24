@@ -1,0 +1,9 @@
+# Valores FIXOS e FALSOS, so para os testes. Nao servem para nenhum ambiente real.
+# Assim os testes rodam em qualquer maquina (inclusive num clone novo, sem .env).
+brumi:
+  seguranca:
+    jwt:
+      segredo: segredo-de-teste-com-mais-de-32-caracteres
+  admin:
+    username: admin-teste
+    password: senha-teste-123

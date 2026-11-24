@@ -10,6 +10,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AccountStatusException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -56,6 +61,37 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	ResponseEntity<Object> integridade(DataIntegrityViolationException ex) {
 		log.warn("Violação de integridade de dados: {}", ex.getMostSpecificCause().getMessage());
 		return resposta(HttpStatus.CONFLICT, "A operação viola uma regra de integridade dos dados", null);
+	}
+
+	// ---------- Seguranca ----------
+
+	/**
+	 * 401: quem e voce? (sem token, token invalido/expirado, ou usuario e senha errados no login).
+	 * O cabecalho WWW-Authenticate: Bearer diz ao cliente qual tipo de credencial enviar.
+	 */
+	@ExceptionHandler(AuthenticationException.class)
+	ResponseEntity<Object> naoAutenticado(AuthenticationException ex) {
+		String mensagem;
+		if (ex instanceof OAuth2AuthenticationException) {
+			mensagem = "Token inválido ou expirado";
+		}
+		else if (ex instanceof BadCredentialsException || ex instanceof AccountStatusException) {
+			// Mesma mensagem para usuario inexistente, senha errada ou conta desativada: assim ninguem
+			// descobre pelo erro quais usuarios existem.
+			mensagem = "Usuário ou senha inválidos";
+		}
+		else {
+			mensagem = "Autenticação necessária";
+		}
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+			.header(HttpHeaders.WWW_AUTHENTICATE, "Bearer")
+			.body(ErroResponse.de(HttpStatus.UNAUTHORIZED, mensagem));
+	}
+
+	/** 403: sei quem voce e, mas voce nao tem permissao para isto. */
+	@ExceptionHandler(AccessDeniedException.class)
+	ResponseEntity<Object> semPermissao(AccessDeniedException ex) {
+		return resposta(HttpStatus.FORBIDDEN, "Você não tem permissão para esta operação", null);
 	}
 
 	// ---------- Erro inesperado (bug nosso) ----------

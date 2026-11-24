@@ -8,7 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.brumi.ComoAdminConfig;
 import br.com.brumi.config.SecurityConfig;
+import org.springframework.test.context.ActiveProfiles;
 import br.com.brumi.dto.CategoriaRequest;
 import br.com.brumi.dto.CategoriaResponse;
 import br.com.brumi.exception.ConflitoException;
@@ -29,7 +31,8 @@ import org.springframework.test.web.servlet.MockMvc;
  * entao nao ha banco. Aqui verificamos o "contrato" da API.
  */
 @WebMvcTest(CategoriaController.class)
-@Import({SecurityConfig.class, GlobalExceptionHandler.class})
+@Import({SecurityConfig.class, GlobalExceptionHandler.class, ComoAdminConfig.class})
+@ActiveProfiles("test")
 class CategoriaControllerTest {
 
 	@Autowired
@@ -118,9 +121,9 @@ class CategoriaControllerTest {
 
 	@Test
 	void metodoNaoPermitidoDevolve405NoFormatoPadrao() throws Exception {
-		// Nao ha DELETE em /api/categorias/{id}. A rota existe, mas nao com este metodo.
-		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/categorias/1")
-				.with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("x")))
+		// Nao ha PUT em /api/categorias/{id}. A rota existe, mas nao com este metodo.
+		// (A requisicao sai como admin pelo ComoAdminConfig, entao passa pela seguranca e chega ao Spring MVC.)
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/categorias/1"))
 			.andExpect(status().isMethodNotAllowed())
 			.andExpect(jsonPath("$.status").value(405));
 	}

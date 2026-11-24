@@ -13,7 +13,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.brumi.ComoAdminConfig;
 import br.com.brumi.config.SecurityConfig;
+import org.springframework.test.context.ActiveProfiles;
 import br.com.brumi.dto.CategoriaResponse;
 import br.com.brumi.dto.FiltroProduto;
 import br.com.brumi.dto.PaginaResponse;
@@ -39,7 +41,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /** Contrato HTTP de produtos: como a URL vira parametros, formato dos JSONs, status e erros. */
 @WebMvcTest(ProdutoController.class)
-@Import({SecurityConfig.class, GlobalExceptionHandler.class})
+@Import({SecurityConfig.class, GlobalExceptionHandler.class, ComoAdminConfig.class})
+@ActiveProfiles("test")
 class ProdutoControllerTest {
 
 	@Autowired

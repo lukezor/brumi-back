@@ -25,6 +25,18 @@ spring:
         default-page-size: 20
         max-page-size: 100   # size=1000 vira 100: impede que alguem peça a tabela inteira de uma vez
 
+# Configuracoes proprias do projeto (lidas por SegurancaProperties e AdminProperties).
+# ${VARIAVEL:padrao} = valor da variavel de ambiente; se nao existir, usa o padrao (vazio se nao houver).
+brumi:
+  seguranca:
+    jwt:
+      segredo: ${JWT_SECRET:}                       # obrigatorio: sem ele a aplicacao nao sobe
+      expiracao-minutos: ${JWT_EXPIRACAO_MINUTOS:1440}
+    cors-origens: ${CORS_ORIGENS:http://localhost:4200}
+  admin:
+    username: ${ADMIN_USERNAME:}
+    password: ${ADMIN_PASSWORD:}
+
 management:
   endpoints:
     web:
