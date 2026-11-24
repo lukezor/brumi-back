@@ -28,6 +28,13 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<!--
+			Contorno provisorio da CVE-2026-114938 (Java4Shell): desliga o decodificador Base64
+			otimizado da JVM. Remover quando o JDK for atualizado para uma versao corrigida
+			(ex.: 25.0.5.1). Em producao, a mesma flag deve ir no comando de inicializacao:
+			java -XX:-UseBASE64Intrinsics -jar brumi-api.jar
+		-->
+		<jvm.hardening.args>-XX:-UseBASE64Intrinsics</jvm.hardening.args>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -131,6 +138,18 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!-- Argumentos da JVM usados por "mvnw spring-boot:run" -->
+					<jvmArguments>${jvm.hardening.args}</jvmArguments>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- Argumentos da JVM que executa os testes -->
+					<argLine>${jvm.hardening.args}</argLine>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

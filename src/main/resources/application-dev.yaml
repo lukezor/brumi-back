@@ -4,6 +4,9 @@
 spring:
   jpa:
     show-sql: true
+  flyway:
+    # Em dev, alem das migrations reais, carrega tambem os dados de exemplo (db/seed).
+    locations: classpath:db/migration,classpath:db/seed
 
 logging:
   level:
