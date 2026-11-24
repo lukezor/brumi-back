@@ -33,6 +33,12 @@ public class SecurityConfig {
 				// TEMPORARIO (Task 5): o POST fica aberto so para podermos testar. Na Task 7 passa a exigir
 				// o token JWT de admin. NAO publicar nesta forma.
 				.requestMatchers(HttpMethod.POST, "/api/categorias").permitAll()
+				// Leitura de produtos: publica.
+				.requestMatchers(HttpMethod.GET, "/api/produtos", "/api/produtos/**").permitAll()
+				// TEMPORARIO (Task 6): escrita de produtos aberta so para testes. Task 7 exige admin.
+				.requestMatchers(HttpMethod.POST, "/api/produtos").permitAll()
+				.requestMatchers(HttpMethod.PUT, "/api/produtos/*").permitAll()
+				.requestMatchers(HttpMethod.DELETE, "/api/produtos/*").permitAll()
 				.anyRequest().authenticated())
 			.httpBasic(Customizer.withDefaults());
 		return http.build();
