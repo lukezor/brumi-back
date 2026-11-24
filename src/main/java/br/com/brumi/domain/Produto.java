@@ -75,9 +75,28 @@ public class Produto {
 		this.preco = preco;
 	}
 
-	/** Adiciona uma imagem no fim da lista. A regra de maximo de 5 fica no service (Task 8). */
+	/** Maximo de imagens por produto. O banco garante o mesmo limite (CHECK posicao entre 0 e 4). */
+	public static final int MAXIMO_IMAGENS = 5;
+
+	/** Adiciona uma imagem no fim da lista. A regra do maximo fica no service, que da uma mensagem amigavel. */
 	public void adicionarImagem(String caminho) {
 		imagens.add(new ProdutoImagem(this, imagens.size(), caminho));
+	}
+
+	/**
+	 * Remove a imagem da posicao "indice" e renumera as seguintes, para nao ficar buraco:
+	 * [0 capa][1 detalhe][2 embalagem] -> remover(1) -> [0 capa][1 embalagem].
+	 * Devolve o caminho do arquivo removido, para o service apaga-lo do disco.
+	 *
+	 * Por um instante, duas imagens tem a mesma posicao. A constraint UNIQUE DEFERRABLE do V1 so confere
+	 * no fim da transacao, entao isso nao da erro.
+	 */
+	public String removerImagem(int indice) {
+		String caminho = imagens.remove(indice).getCaminho();
+		for (int i = 0; i < imagens.size(); i++) {
+			imagens.get(i).setPosicao(i);
+		}
+		return caminho;
 	}
 
 	public Long getId() {

@@ -39,6 +39,9 @@ class ProdutoServiceTest {
 	@Mock
 	CategoriaRepository categoriaRepository;
 
+	@Mock
+	ArmazenamentoImagens armazenamento;
+
 	@InjectMocks
 	ProdutoService service;
 

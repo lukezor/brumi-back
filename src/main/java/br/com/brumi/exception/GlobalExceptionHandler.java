@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -119,6 +120,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return resposta(HttpStatus.BAD_REQUEST, "Dados inválidos", campos);
 	}
 
+	/** Upload sem o campo de arquivo esperado (ex.: campo "imagem" em vez de "imagens"). */
+	@Override
+	protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		return resposta(HttpStatus.BAD_REQUEST,
+			"Envie os arquivos no campo '" + ex.getRequestPartName() + "' (multipart/form-data)", null);
+	}
+
 	/** Todos os demais erros padrao do Spring passam por aqui. Trocamos o corpo pelo nosso formato. */
 	@Override
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body,
@@ -142,6 +151,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			case METHOD_NOT_ALLOWED -> "Método HTTP não permitido para este recurso";
 			case NOT_ACCEPTABLE -> "Formato de resposta não suportado";
 			case UNSUPPORTED_MEDIA_TYPE -> "Tipo de conteúdo não suportado";
+			// 413: o servidor recusou antes de ler (limites spring.servlet.multipart.*).
+			case CONTENT_TOO_LARGE -> "Arquivo grande demais: cada imagem pode ter até 5MB e o envio todo até 30MB";
 			default -> status.is5xxServerError()
 				? "Ocorreu um erro inesperado. Tente novamente mais tarde."
 				: "Não foi possível processar a requisição";

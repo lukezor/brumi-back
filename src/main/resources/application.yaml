@@ -19,6 +19,13 @@ spring:
         # uma consulta por produto.
         default_batch_fetch_size: 50
 
+  servlet:
+    multipart:
+      # Limites aplicados pelo servidor ANTES de o arquivo chegar ao nosso codigo (resposta 413).
+      # 5 imagens de 5MB = 25MB; a folga cobre os cabecalhos do multipart.
+      max-file-size: 5MB
+      max-request-size: 30MB
+
   data:
     web:
       pageable:
@@ -36,6 +43,9 @@ brumi:
   admin:
     username: ${ADMIN_USERNAME:}
     password: ${ADMIN_PASSWORD:}
+  uploads:
+    diretorio: ${UPLOADS_DIR:uploads}
+    tamanho-maximo-por-arquivo: 5MB
 
 management:
   endpoints:

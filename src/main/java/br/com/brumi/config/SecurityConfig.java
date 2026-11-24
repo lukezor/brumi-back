@@ -76,6 +76,8 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				// As regras sao lidas de cima para baixo. Vale a PRIMEIRA que combinar.
 				.requestMatchers("/api/ping", "/actuator/health", "/actuator/health/**", "/error").permitAll()
+				// Arquivos das imagens: publicos (o catalogo exibe sem login).
+				.requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 				.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 				.requestMatchers(HttpMethod.GET, ROTAS_DE_CATALOGO).permitAll()
 				.requestMatchers(HttpMethod.POST, ROTAS_DE_CATALOGO).hasRole("ADMIN")

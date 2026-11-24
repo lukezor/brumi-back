@@ -7,3 +7,6 @@ brumi:
   admin:
     username: admin-teste
     password: senha-teste-123
+  uploads:
+    # Dentro de target/: o "mvnw clean" apaga junto. Nunca usa a pasta uploads/ de verdade.
+    diretorio: target/test-uploads

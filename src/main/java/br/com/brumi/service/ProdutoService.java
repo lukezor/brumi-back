@@ -2,6 +2,7 @@ package br.com.brumi.service;
 
 import br.com.brumi.domain.Categoria;
 import br.com.brumi.domain.Produto;
+import br.com.brumi.domain.ProdutoImagem;
 import br.com.brumi.dto.FiltroProduto;
 import br.com.brumi.dto.PaginaResponse;
 import br.com.brumi.dto.ProdutoRequest;
@@ -32,10 +33,13 @@ public class ProdutoService {
 
 	private final ProdutoRepository produtoRepository;
 	private final CategoriaRepository categoriaRepository;
+	private final ArmazenamentoImagens armazenamento;
 
-	public ProdutoService(ProdutoRepository produtoRepository, CategoriaRepository categoriaRepository) {
+	public ProdutoService(ProdutoRepository produtoRepository, CategoriaRepository categoriaRepository,
+			ArmazenamentoImagens armazenamento) {
 		this.produtoRepository = produtoRepository;
 		this.categoriaRepository = categoriaRepository;
+		this.armazenamento = armazenamento;
 	}
 
 	@Transactional(readOnly = true)
@@ -86,9 +90,13 @@ public class ProdutoService {
 		return ProdutoResponse.de(produto);
 	}
 
+	/** Apaga o produto (as linhas de imagem saem em cascata) e, depois do commit, os arquivos do disco. */
 	@Transactional
 	public void deletar(Long id) {
-		produtoRepository.delete(buscar(id));
+		Produto produto = buscar(id);
+		List<String> arquivos = produto.getImagens().stream().map(ProdutoImagem::getCaminho).toList();
+		produtoRepository.delete(produto);
+		PosTransacao.aposCommit(() -> arquivos.forEach(armazenamento::remover));
 	}
 
 	// ---------- auxiliares ----------

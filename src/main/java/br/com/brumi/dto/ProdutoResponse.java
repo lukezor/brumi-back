@@ -2,7 +2,6 @@ package br.com.brumi.dto;
 
 import br.com.brumi.domain.Categoria;
 import br.com.brumi.domain.Produto;
-import br.com.brumi.domain.ProdutoImagem;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -16,6 +15,12 @@ public record ProdutoResponse(
 	boolean ativo,
 	List<CategoriaResponse> categorias,
 	List<String> imagens) {
+
+	/**
+	 * O banco guarda so o NOME do arquivo ("3f2a....png"). A API devolve o caminho publico
+	 * ("/uploads/3f2a....png"), que o frontend junta com o endereco da API para montar o <img src>.
+	 */
+	public static final String PREFIXO_URL_IMAGEM = "/uploads/";
 
 	/**
 	 * Converte a entidade em DTO. ATENCAO: acessa colecoes lazy (categorias e imagens), entao precisa
@@ -32,6 +37,6 @@ public record ProdutoResponse(
 				.sorted(Comparator.comparing(Categoria::getNome))
 				.map(CategoriaResponse::de)
 				.toList(),
-			produto.getImagens().stream().map(ProdutoImagem::getCaminho).toList());
+			produto.getImagens().stream().map(i -> PREFIXO_URL_IMAGEM + i.getCaminho()).toList());
 	}
 }
