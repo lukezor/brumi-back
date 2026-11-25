@@ -1,0 +1,44 @@
+# Perfil "prod": ativado no Cloud Run com SPRING_PROFILES_ACTIVE=prod.
+# Sem .env e sem docker compose: TODOS os valores vem de variaveis de ambiente (e segredos do Secret Manager).
+spring:
+  docker:
+    compose:
+      enabled: false   # em producao nao ha Docker para subir o banco: ele e o Neon
+  datasource:
+    # Ex.: jdbc:postgresql://ep-xxx.us-east-1.aws.neon.tech/brumi?sslmode=require
+    # sslmode=require: a conexao com o banco vai criptografada pela internet.
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      # Plano gratis: poucas conexoes. Com no maximo 1 instancia da API, 5 sobram.
+      maximum-pool-size: 5
+      # Nao manter conexoes paradas: assim o Neon pode "dormir" quando ninguem usa e nao gasta a cota.
+      minimum-idle: 0
+      idle-timeout: 60s
+
+server:
+  # O Cloud Run informa a porta pela variavel PORT (normalmente 8080).
+  port: ${PORT:8080}
+  # Atras do Firebase Hosting / Cloud Run, o pedido chega por um proxy. Isto faz o Spring respeitar os
+  # cabecalhos X-Forwarded-* (https, host original) ao montar URLs, como o Location dos POST.
+  forward-headers-strategy: framework
+
+brumi:
+  armazenamento:
+    tipo: ${ARMAZENAMENTO_TIPO:gcs}
+  seguranca:
+    # A aplicacao se recusa a subir sem -XX:-UseBASE64Intrinsics (Java4Shell). Ver VerificacaoFlagJvm.
+    exigir-flag-jvm: true
+
+# Swagger desligado: nao expor o mapa da API na internet.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    br.com.brumi: INFO
