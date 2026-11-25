@@ -43,8 +43,11 @@ brumi:
   admin:
     username: ${ADMIN_USERNAME:}
     password: ${ADMIN_PASSWORD:}
+  # Onde as fotos ficam: "local" (pasta no disco, padrao) ou "gcs" (Cloud Storage, producao).
+  armazenamento:
+    tipo: ${ARMAZENAMENTO_TIPO:local}
   uploads:
-    diretorio: ${UPLOADS_DIR:uploads}
+    diretorio: ${UPLOADS_DIR:uploads}   # usado so pelo armazenamento local
     tamanho-maximo-por-arquivo: 5MB
 
 # Documentacao interativa: http://localhost:8080/swagger-ui.html

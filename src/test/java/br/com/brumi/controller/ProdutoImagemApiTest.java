@@ -18,7 +18,7 @@ import br.com.brumi.Imagens;
 import br.com.brumi.TestcontainersConfiguration;
 import br.com.brumi.domain.Produto;
 import br.com.brumi.repository.ProdutoRepository;
-import br.com.brumi.service.ArmazenamentoImagens;
+import br.com.brumi.service.ArmazenamentoLocal;
 import br.com.brumi.service.ProdutoImagemService;
 import com.jayway.jsonpath.JsonPath;
 import java.io.IOException;
@@ -58,7 +58,7 @@ class ProdutoImagemApiTest {
 	@Autowired
 	ProdutoRepository produtos;
 	@Autowired
-	ArmazenamentoImagens armazenamento;
+	ArmazenamentoLocal armazenamento;
 	@Autowired
 	ProdutoImagemService imagemService;
 	@Autowired
@@ -133,7 +133,7 @@ class ProdutoImagemApiTest {
 		mvc.perform(get(urls.get(0)).with(anonymous()))
 			.andExpect(status().isOk())
 			.andExpect(header().string("Content-Type", "image/png"))
-			.andExpect(header().string("Cache-Control", containsString("max-age=31536000")))
+			.andExpect(header().string("Cache-Control", "max-age=31536000, public, immutable"))
 			.andExpect(content().bytes(Imagens.png("x").getBytes()));
 
 		// E o GET do produto mostra as imagens, em ordem.

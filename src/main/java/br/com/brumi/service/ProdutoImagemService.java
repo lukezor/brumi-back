@@ -5,7 +5,6 @@ import br.com.brumi.dto.ProdutoResponse;
 import br.com.brumi.exception.RecursoNaoEncontradoException;
 import br.com.brumi.exception.RequisicaoInvalidaException;
 import br.com.brumi.repository.ProdutoRepository;
-import br.com.brumi.service.ArmazenamentoImagens.ImagemValidada;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -18,10 +17,13 @@ public class ProdutoImagemService {
 
 	private final ProdutoRepository produtos;
 	private final ArmazenamentoImagens armazenamento;
+	private final ValidadorImagens validador;
 
-	public ProdutoImagemService(ProdutoRepository produtos, ArmazenamentoImagens armazenamento) {
+	public ProdutoImagemService(ProdutoRepository produtos, ArmazenamentoImagens armazenamento,
+			ValidadorImagens validador) {
 		this.produtos = produtos;
 		this.armazenamento = armazenamento;
+		this.validador = validador;
 	}
 
 	/**
@@ -41,7 +43,7 @@ public class ProdutoImagemService {
 			throw new RequisicaoInvalidaException("O produto pode ter no máximo " + Produto.MAXIMO_IMAGENS
 				+ " imagens. Ele já tem " + atuais + " e foram enviadas " + arquivos.size() + ".");
 		}
-		List<ImagemValidada> validadas = arquivos.stream().map(armazenamento::validar).toList();
+		List<ImagemValidada> validadas = arquivos.stream().map(validador::validar).toList();
 
 		List<String> gravados = new ArrayList<>();
 		PosTransacao.aoDesfazer(() -> gravados.forEach(armazenamento::remover));
