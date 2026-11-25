@@ -16,5 +16,20 @@ services:
       timeout: 3s
       retries: 10
 
+  # Emulador do Cloud Storage, OPCIONAL (perfil "gcs"): so sobe com
+  #   docker compose --profile gcs up -d gcs
+  # Cada pasta dentro de infra/gcs-local vira um bucket. Ver docs/deploy/task-02.
+  gcs:
+    image: fsouza/fake-gcs-server:1.56
+    container_name: brumi-gcs
+    profiles: ["gcs"]
+    command: ["-scheme", "http", "-port", "4443", "-backend", "filesystem", "-filesystem-root", "/storage", "-data", "/data"]
+    ports:
+      - "4443:4443"
+    volumes:
+      - ./infra/gcs-local:/data
+      - brumi-gcsdata:/storage
+
 volumes:
   brumi-pgdata:
+  brumi-gcsdata:

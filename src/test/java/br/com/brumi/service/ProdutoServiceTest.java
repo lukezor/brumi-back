@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.brumi.config.ArmazenamentoProperties;
 import br.com.brumi.domain.Categoria;
 import br.com.brumi.domain.Produto;
 import br.com.brumi.dto.FiltroProduto;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -41,6 +43,10 @@ class ProdutoServiceTest {
 
 	@Mock
 	ArmazenamentoImagens armazenamento;
+
+	// Objeto real (sem url-publica): monta "/uploads/<nome>" como em dev.
+	@Spy
+	EnderecoImagens endereco = new EnderecoImagens(new ArmazenamentoProperties("local", "", null));
 
 	@InjectMocks
 	ProdutoService service;

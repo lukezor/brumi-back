@@ -18,9 +18,11 @@ public class ProdutoImagemService {
 	private final ProdutoRepository produtos;
 	private final ArmazenamentoImagens armazenamento;
 	private final ValidadorImagens validador;
+	private final EnderecoImagens endereco;
 
 	public ProdutoImagemService(ProdutoRepository produtos, ArmazenamentoImagens armazenamento,
-			ValidadorImagens validador) {
+			ValidadorImagens validador, EnderecoImagens endereco) {
+		this.endereco = endereco;
 		this.produtos = produtos;
 		this.armazenamento = armazenamento;
 		this.validador = validador;
@@ -51,7 +53,7 @@ public class ProdutoImagemService {
 			gravados.add(armazenamento.salvar(imagem));
 		}
 		gravados.forEach(produto::adicionarImagem);
-		return ProdutoResponse.de(produto);
+		return ProdutoResponse.de(produto, endereco::de);
 	}
 
 	/** Remove pela posicao (0 = primeira), como no sistema original. O arquivo so e apagado apos o commit. */
@@ -67,7 +69,7 @@ public class ProdutoImagemService {
 		}
 		String arquivo = produto.removerImagem(indice);
 		PosTransacao.aposCommit(() -> armazenamento.remover(arquivo));
-		return ProdutoResponse.de(produto);
+		return ProdutoResponse.de(produto, endereco::de);
 	}
 
 	private Produto buscar(Long id) {

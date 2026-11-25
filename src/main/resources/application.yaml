@@ -46,6 +46,10 @@ brumi:
   # Onde as fotos ficam: "local" (pasta no disco, padrao) ou "gcs" (Cloud Storage, producao).
   armazenamento:
     tipo: ${ARMAZENAMENTO_TIPO:local}
+    url-publica: ${ARMAZENAMENTO_URL_PUBLICA:}   # vazio = fotos pela API em /uploads/<nome>
+    gcs:
+      bucket: ${GCS_BUCKET:}
+      host: ${GCS_HOST:}                         # so para o emulador local; vazio = Google de verdade
   uploads:
     diretorio: ${UPLOADS_DIR:uploads}   # usado so pelo armazenamento local
     tamanho-maximo-por-arquivo: 5MB

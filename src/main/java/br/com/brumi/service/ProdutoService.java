@@ -34,9 +34,11 @@ public class ProdutoService {
 	private final ProdutoRepository produtoRepository;
 	private final CategoriaRepository categoriaRepository;
 	private final ArmazenamentoImagens armazenamento;
+	private final EnderecoImagens endereco;
 
 	public ProdutoService(ProdutoRepository produtoRepository, CategoriaRepository categoriaRepository,
-			ArmazenamentoImagens armazenamento) {
+			ArmazenamentoImagens armazenamento, EnderecoImagens endereco) {
+		this.endereco = endereco;
 		this.produtoRepository = produtoRepository;
 		this.categoriaRepository = categoriaRepository;
 		this.armazenamento = armazenamento;
@@ -47,19 +49,19 @@ public class ProdutoService {
 		Pageable seguro = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
 			ordenacaoSegura(pageable.getSort()));
 		Page<Produto> pagina = produtoRepository.findAll(ProdutoSpecs.comFiltro(filtro), seguro);
-		return PaginaResponse.de(pagina, ProdutoResponse::de);
+		return PaginaResponse.de(pagina, p -> ProdutoResponse.de(p, endereco::de));
 	}
 
 	@Transactional(readOnly = true)
 	public ProdutoResponse obter(Long id) {
-		return ProdutoResponse.de(buscar(id));
+		return ProdutoResponse.de(buscar(id), endereco::de);
 	}
 
 	@Transactional
 	public ProdutoResponse criar(ProdutoRequest request) {
 		Produto produto = new Produto(request.nome().trim(), request.descricao(), request.preco());
 		produto.getCategorias().addAll(buscarCategorias(request.categoriasIds()));
-		return ProdutoResponse.de(produtoRepository.save(produto));
+		return ProdutoResponse.de(produtoRepository.save(produto), endereco::de);
 	}
 
 	/**
@@ -87,7 +89,7 @@ public class ProdutoService {
 			produto.getCategorias().clear();
 			produto.getCategorias().addAll(novas);
 		}
-		return ProdutoResponse.de(produto);
+		return ProdutoResponse.de(produto, endereco::de);
 	}
 
 	/** Apaga o produto (as linhas de imagem saem em cascata) e, depois do commit, os arquivos do disco. */

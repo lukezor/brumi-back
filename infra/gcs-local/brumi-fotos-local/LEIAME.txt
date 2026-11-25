@@ -1,0 +1,2 @@
+Esta pasta vira o bucket "brumi-fotos-local" no emulador do Cloud Storage (servico "gcs" do compose.yaml).
+As fotos enviadas ficam no volume brumi-gcsdata, nao aqui.

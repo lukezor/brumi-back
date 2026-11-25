@@ -5,6 +5,7 @@ import br.com.brumi.domain.Produto;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 /** Produto como a API o devolve. (≈ ProdutoRead do schemas.py.) */
 public record ProdutoResponse(
@@ -17,16 +18,13 @@ public record ProdutoResponse(
 	List<String> imagens) {
 
 	/**
-	 * O banco guarda so o NOME do arquivo ("3f2a....png"). A API devolve o caminho publico
-	 * ("/uploads/3f2a....png"), que o frontend junta com o endereco da API para montar o <img src>.
-	 */
-	public static final String PREFIXO_URL_IMAGEM = "/uploads/";
-
-	/**
 	 * Converte a entidade em DTO. ATENCAO: acessa colecoes lazy (categorias e imagens), entao precisa
 	 * ser chamado DENTRO de uma transacao (o service faz isso).
+	 *
+	 * O banco guarda so o NOME do arquivo ("3f2a....png"). urlImagem transforma o nome no endereco publico
+	 * (ver EnderecoImagens): "/uploads/3f2a....png" ou uma URL absoluta, se houver url-publica.
 	 */
-	public static ProdutoResponse de(Produto produto) {
+	public static ProdutoResponse de(Produto produto, Function<String, String> urlImagem) {
 		return new ProdutoResponse(
 			produto.getId(),
 			produto.getNome(),
@@ -37,6 +35,6 @@ public record ProdutoResponse(
 				.sorted(Comparator.comparing(Categoria::getNome))
 				.map(CategoriaResponse::de)
 				.toList(),
-			produto.getImagens().stream().map(i -> PREFIXO_URL_IMAGEM + i.getCaminho()).toList());
+			produto.getImagens().stream().map(i -> urlImagem.apply(i.getCaminho())).toList());
 	}
 }
