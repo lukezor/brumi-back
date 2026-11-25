@@ -1,0 +1,18 @@
+# Configurações do perfil "dev" (carregado junto com application.yaml).
+# A conexão com o banco NÃO aparece aqui: o spring-boot-docker-compose lê o compose.yaml,
+# sobe o Postgres e configura a conexão sozinho.
+spring:
+  config:
+    # Le o arquivo .env da raiz do projeto como se fosse um .properties. Assim JWT_SECRET, ADMIN_USERNAME etc.
+    # ficam disponiveis para os ${...} do application.yaml. "optional:" = se o arquivo nao existir, segue sem ele.
+    # (Em producao nao ha .env: os valores vem de variaveis de ambiente de verdade.)
+    import: optional:file:.env[.properties]
+  jpa:
+    show-sql: true
+  flyway:
+    # Em dev, alem das migrations reais, carrega tambem os dados de exemplo (db/seed).
+    locations: classpath:db/migration,classpath:db/seed
+
+logging:
+  level:
+    br.com.brumi: DEBUG

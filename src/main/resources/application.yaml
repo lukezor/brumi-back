@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: brumi-api
+
+  # Perfil usado quando nenhum outro for informado (equivale a "ambiente de desenvolvimento").
+  profiles:
+    default: dev
+
+  jpa:
+    # "validate": o Hibernate apenas confere se as tabelas batem com as entidades.
+    # Quem cria/altera tabelas é o Flyway (migrations), nunca o Hibernate.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        # Resolve o problema N+1 em listagens: ao carregar as colecoes lazy (categorias, imagens) de uma
+        # pagina de produtos, busca ate 50 produtos por consulta (WHERE produto_id IN (...)), em vez de
+        # uma consulta por produto.
+        default_batch_fetch_size: 50
+
+  servlet:
+    multipart:
+      # Limites aplicados pelo servidor ANTES de o arquivo chegar ao nosso codigo (resposta 413).
+      # 5 imagens de 5MB = 25MB; a folga cobre os cabecalhos do multipart.
+      max-file-size: 5MB
+      max-request-size: 30MB
+
+  data:
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100   # size=1000 vira 100: impede que alguem peça a tabela inteira de uma vez
+
+# Configuracoes proprias do projeto (lidas por SegurancaProperties e AdminProperties).
+# ${VARIAVEL:padrao} = valor da variavel de ambiente; se nao existir, usa o padrao (vazio se nao houver).
+brumi:
+  seguranca:
+    jwt:
+      segredo: ${JWT_SECRET:}                       # obrigatorio: sem ele a aplicacao nao sobe
+      expiracao-minutos: ${JWT_EXPIRACAO_MINUTOS:1440}
+    cors-origens: ${CORS_ORIGENS:http://localhost:4200}
+  admin:
+    username: ${ADMIN_USERNAME:}
+    password: ${ADMIN_PASSWORD:}
+  uploads:
+    diretorio: ${UPLOADS_DIR:uploads}
+    tamanho-maximo-por-arquivo: 5MB
+
+# Documentacao interativa: http://localhost:8080/swagger-ui.html
+# Em producao costuma-se desligar (SWAGGER_ENABLED=false), para nao expor o mapa da API.
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:true}
+    tags-sorter: alpha
+    operations-sorter: method
+    persist-authorization: true   # mantem o token do "Authorize" ao recarregar a pagina (so no seu navegador)
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

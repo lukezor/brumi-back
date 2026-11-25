@@ -1,0 +1,12 @@
+# Valores FIXOS e FALSOS, so para os testes. Nao servem para nenhum ambiente real.
+# Assim os testes rodam em qualquer maquina (inclusive num clone novo, sem .env).
+brumi:
+  seguranca:
+    jwt:
+      segredo: segredo-de-teste-com-mais-de-32-caracteres
+  admin:
+    username: admin-teste
+    password: senha-teste-123
+  uploads:
+    # Dentro de target/: o "mvnw clean" apaga junto. Nunca usa a pasta uploads/ de verdade.
+    diretorio: target/test-uploads
