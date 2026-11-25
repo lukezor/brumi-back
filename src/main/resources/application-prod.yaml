@@ -15,7 +15,7 @@ spring:
       maximum-pool-size: 5
       # Nao manter conexoes paradas: assim o Neon pode "dormir" quando ninguem usa e nao gasta a cota.
       minimum-idle: 0
-      idle-timeout: 60s
+      idle-timeout: 60000   # milissegundos (o Hikari nao aceita "60s")
 
 server:
   # O Cloud Run informa a porta pela variavel PORT (normalmente 8080).

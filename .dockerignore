@@ -1,0 +1,10 @@
+# O que NAO vai para dentro do build do Docker (menor, mais rapido e sem segredos).
+.git
+.env
+.env.*
+target
+uploads
+infra
+.idea
+.vscode
+*.md
