@@ -156,8 +156,8 @@ src/main/resources/
 └── db/seed/      dados de exemplo (só perfil dev)
 src/test/          testes (unitários, de controller e de integração)
 compose.yaml       PostgreSQL de desenvolvimento
-_legacy/           versão antiga em FastAPI (referência durante a migração)
 ```
+A versão antiga, em FastAPI (Python), continua na branch `main` até o merge desta migração.
 
 ## Banco de dados
 | Comando | Efeito |
